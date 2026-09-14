@@ -73,6 +73,15 @@
       "pluginName": "example-skills",
       "installedAt": "2026-09-09T06:21:00.851Z",
       "updatedAt": "2026-09-09T06:21:00.851Z"
+    },
+    "debugging-code": {
+      "source": "JetBrains/skills",
+      "sourceType": "github",
+      "sourceUrl": "https://github.com/JetBrains/skills.git",
+      "skillPath": "debugging-code/SKILL.md",
+      "skillFolderHash": "44ac627c483f716653d5f5fc15fed2c456e22fc9",
+      "installedAt": "2026-09-14T06:44:29.892Z",
+      "updatedAt": "2026-09-14T06:44:29.892Z"
     }
   },
   "dismissed": {
