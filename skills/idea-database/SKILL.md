@@ -40,7 +40,7 @@ Use:
 
 `list_schema_objects`
 
-to discover tables, views, and other objects.
+to discover tables, views, and other objects. Pass `connectionId`, `databaseName`, and `schemaName`; optionally pass `kind` to filter by an object kind code.
 
 If the required object kind is unknown, use:
 
@@ -95,7 +95,7 @@ Use:
 
 `execute_sql_query`
 
-with `connectionId` and `queryText` when filtering, joins, aggregation, ordering, or custom SQL is required.
+with `connectionId`, `databaseName`, `schemaName`, and `queryText` when filtering, joins, aggregation, ordering, or custom SQL is required.
 
 Prefer targeted, read-only queries unless modification is explicitly requested.
 
@@ -103,7 +103,7 @@ If more rows are required and a `resultSetId` is returned, use:
 
 `fetch_query_result`
 
-with `resultSetId` and the appropriate `offset` instead of executing the query again.
+with the required `resultSetId` and `offset` instead of executing the query again.
 
 ### Connection problems
 
@@ -131,9 +131,9 @@ with the returned `sessionId` when a running query must be stopped.
 
 ## Connection management
 
-Use `create_database_connection` only when no suitable IntelliJ IDEA data source exists.
+Use `create_database_connection` only when no suitable IntelliJ IDEA data source exists. It requires `name`, `dbms`, `url`, and `needToCheckDs`.
 
-Use `edit_database_connection` only when an existing connection actually needs modification.
+Use `edit_database_connection` only when an existing connection actually needs modification. It requires `connectionId`, `dbms`, `url`, and `needToCheckDs`.
 
 Do not modify connections merely to inspect database data.
 
