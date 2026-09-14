@@ -1,7 +1,7 @@
 ---
 name: idea-database
 description: Use IntelliJ IDEA MCP database tools to inspect database connections, schemas, objects, data, SQL queries, and query status for databases configured in IntelliJ IDEA.
------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+---
 
 # IntelliJ IDEA Database
 
