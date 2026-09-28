@@ -167,6 +167,15 @@ An update by `breakpointId` rewrites the whole breakpoint; treat it as "write th
 
 After each call, inspect the returned `lineText` and confirm the excerpt matches the intended line. A successful response does not prove `condition`/`logExpression` is valid; verify via `breakpointErrorsTail` / `tracepointOutputsTail` after the next run.
 
+## Bounded Inspection Defaults
+
+For queries and inspections that can return large results, keep the first call narrowly scoped and expand or paginate only when the current result is insufficient. Tool parameters and official defaults refer to the [JetBrains MCP Server documentation](https://www.jetbrains.com/help/idea/mcp-server.html); conservative Skill limits are identified separately.
+
+- `xdebug_get_threads`: explicitly use `limit: 20` and `offset: 0` on the first call; fetch another page only if more relevant threads are needed. The official defaults are `limit: 50` (maximum `200`) and `offset: 0`; `20` is this Skill's conservative recommendation, not the official default.
+- `xdebug_get_stack`: explicitly use `limit: 30` and `offset: 0` on the first call; fetch deeper frames only when needed. The official defaults are `limit: 200` and `offset: 0`; `30` is this Skill's conservative recommendation, not the official default.
+- `xdebug_get_frame_values`, `xdebug_get_value_by_path`, and `xdebug_evaluate_expression`: keep `depth: 0` by default. This is also the official default. Use `depth: 1` only when immediate object children are needed; do not expand multiple levels just to inspect an object.
+- `xdebug_control_session` with `action: "DRAIN_EVENTS"`: explicitly use `eventsLimit: 50` for ordinary calls. The official default is `100`, applied independently to `breakpointErrorsTail` and `tracepointOutputsTail`; `50` is this Skill's recommendation, not the official default. Drain more promptly when logpoints are producing events frequently.
+
 ## Core Workflow
 
 1. Scope the failure: capture exact error text and expected vs actual; identify 2–5 candidate anchors and the value at each that would confirm/refute a hypothesis.
