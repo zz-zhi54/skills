@@ -12,10 +12,10 @@
 | [`convert-documents-to-markdown`](.agents/skills/convert-documents-to-markdown/) | 将办公文档、电子书、CSV 文件和 PDF 转换为 GitHub Flavored Markdown。 |
 | [`create-agentsmd`](.agents/skills/create-agentsmd/) | 为代码仓库创建高质量的 `AGENTS.md` 文件。 |
 | [`create-github-action-workflow-specification`](.agents/skills/create-github-action-workflow-specification/) | 为现有 GitHub Actions 工作流创建适合 AI 使用的规范说明。 |
-| [`debugging-code`](.agents/skills/debugging-code/) | 在 Rider 支持的项目中，以调试器优先的方式分析运行时根因。 |
 | [`find-skills`](.agents/skills/find-skills/) | 从开放的 agent skills 生态中发现并安装技能。 |
+| [`idea`](.agents/skills/idea/) | 通过 IntelliJ IDEA MCP 搜索符号、读取源码、分析调用关系并执行符号重命名。 |
 | [`idea-database`](.agents/skills/idea-database/) | 通过 IntelliJ IDEA MCP 工具检查数据库连接、模式、对象、查询和查询状态。 |
-| [`ij-debugger`](.agents/skills/ij-debugger/) | 在 IntelliJ IDEA 中，以调试器优先的方式分析 JVM 代码运行时问题。 |
+| [`idea-debug`](.agents/skills/idea-debug/) | 在 IntelliJ IDEA 中，以调试器优先的方式分析 JVM 代码运行时问题。 |
 | [`playwright-cli`](.agents/skills/playwright-cli/) | 使用 `playwright-cli` 自动化浏览器并处理 Playwright 测试。 |
 | [`skill-creator`](.agents/skills/skill-creator/) | 创建、改进和评估 agent skills。 |
 | [`tea-cli`](.agents/skills/tea-cli/) | 使用官方 `tea` 命令行工具操作 Gitea。 |

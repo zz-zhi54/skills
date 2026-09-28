@@ -23,13 +23,20 @@ def main(argv):
     show_help = len(argv) == 2 and argv[1] == "--help"
     json_arguments = argv[1] if len(argv) == 2 and not show_help else "{}"
 
-    project_dir = Path.cwd().resolve()
+    working_dir = Path.cwd().resolve()
     skill_path = Path(__file__).resolve().parent.parent
-    if project_dir == skill_path or skill_path in project_dir.parents:
+    if working_dir == skill_path or skill_path in working_dir.parents:
         print("Run this script from the DSH project directory, not from the Skill directory.", file=sys.stderr)
         return 2
 
-    if shutil.which("mcpc") is None:
+    project_dir = working_dir
+    for candidate in (working_dir, *working_dir.parents):
+        if (candidate / ".git").exists():
+            project_dir = candidate
+            break
+
+    mcpc = shutil.which("mcpc")
+    if mcpc is None:
         print("mcpc was not found on PATH; install/configure apify/mcpc before using this Skill.", file=sys.stderr)
         return 127
 
@@ -38,16 +45,16 @@ def main(argv):
     session = "@idea"
 
     connect = subprocess.run([
-        "mcpc", "connect", ENDPOINT, session, "--no-profile",
+        mcpc, "connect", ENDPOINT, session, "--no-profile",
         "-H", f"IJ_MCP_SERVER_PROJECT_PATH: {project_dir}",
-    ], env=env)
+    ], env=env, stdout=sys.stderr)
     if connect.returncode != 0:
         return connect.returncode
 
     if show_help:
-        command = ["mcpc", session, "tools-get", tool]
+        command = [mcpc, session, "tools-get", tool]
     else:
-        command = ["mcpc", "--json", session, "tools-call", tool, json_arguments]
+        command = [mcpc, "--json", session, "tools-call", tool, json_arguments]
     return subprocess.run(command, env=env).returncode
 
 

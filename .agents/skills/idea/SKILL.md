@@ -5,11 +5,11 @@ description: 通过 IntelliJ IDEA MCP 使用 IDEA 的符号索引、源码读取
 
 # IntelliJ IDEA
 
-使用 Python 调用当前 Skill 内的脚本；下例中的 `python scripts/idea.py` 是 `python <已解析的 Skill 目录>/scripts/idea.py` 的简写。需要系统已安装 `mcpc`；若缺失，脚本会报错退出，不会自动安装。保持命令工作目录为当前 dsh 正在处理的项目目录；脚本用该目录作为 `IJ_MCP_SERVER_PROJECT_PATH`，并按项目路径生成稳定的 mcpc session 名。不要手动指定项目路径。参数使用 IDEA Tool 的原始名称和字段；一次只调用以下四个 Tool。需要查看 Tool 定义时使用 `python scripts/idea.py <tool> --help`。
+使用 Python 调用当前 Skill 内的脚本；下例中的 `python scripts/idea.py` 是 `python <已解析的 Skill 目录>/scripts/idea.py` 的简写。需要系统已安装 `mcpc`；若缺失，脚本会报错退出，不会自动安装。保持命令工作目录位于当前 DSH 项目中；脚本向上查找最近的 `.git` 目录或文件作为项目根目录（未找到时使用当前工作目录），并将该根目录作为 `IJ_MCP_SERVER_PROJECT_PATH`。mcpc 状态保存在 `<项目根目录>/.dsh/mcpc`，三个 IDEA Skills 共用固定 session `@idea`。不要手动指定项目路径。参数使用 IDEA Tool 的原始名称和字段；一次只调用以下四个 Tool。需要查看 Tool 定义时使用 `python scripts/idea.py <tool> --help`。
 
 - `search_symbol`：仅在需要 IDEA 索引定位符号时使用，可搜索项目、依赖及 SDK/JDK 符号。已知普通项目源码路径时直接用常规文件工具，不要固定执行 `search_symbol` 后接 `read_file`。
   - 必填：`q`。可选：`paths`（glob 数组）、`include_external`（布尔值）、`limit`（整数）。依赖或 SDK/JDK 符号未命中时再设 `include_external: true`。
-- `read_file`：主要读取 IDEA 可解析但普通文件工具不便读取的内容，如依赖/Jar/JDK 源码或反编译 class。必填：`file_path`；可选：`offset`（起始行）、`limit`（行数）。
+- `read_file`：主要读取 IDEA 可解析但普通文件工具不便读取的内容，如依赖/Jar/JDK 源码或反编译 class。使用 `file_path` 指定目标；读取模式及其范围参数请先通过 `python scripts/idea.py read_file --help` 查询当前定义。
 - `analyze_calls`：需要真实语义调用关系时使用，不要用文本搜索代替。`symbolFqn` 和 `analysisKind` 必填；`analysisKind` 为 `INCOMING_CALLS` 或 `OUTGOING_CALLS`。若名称不明确，先用 `search_symbol` 定位，歧义时使用工具返回的完整签名。可选：`depth`、`maxChildren`、`maxNodes`、`treePath`、`childOffset`、`timeout`。
 - `rename_refactoring`：用户要求重命名代码符号时使用 IDEA 语义重构；不要用普通文本替换模拟。`pathInProject`（相对项目根目录）、`symbolName`（精确旧名称）和 `newName` 必填。此操作会修改项目代码，只在任务确实要求重命名时调用。
 
