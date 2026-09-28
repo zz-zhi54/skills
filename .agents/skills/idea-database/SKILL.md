@@ -12,9 +12,9 @@ Use IntelliJ IDEA MCP database tools for databases configured in the current IDE
 - creating separate database connections
 - guessing database structure from source code
 
-All database capabilities in this skill are invoked through the bundled Python script at `<resolved Skill directory>/scripts/idea-database.py`. Do not use `execute_tool` or another router. The script connects to the local IntelliJ IDEA MCP Server, sets `IJ_MCP_SERVER_PROJECT_PATH` from the active DSH command working directory, and calls the named IDEA MCP tool. Run it with Python using its resolved path while keeping the DSH project directory as the command working directory; do not `cd` into the Skill directory. Examples use `python scripts/idea-database.py` as shorthand for `python <resolved Skill directory>/scripts/idea-database.py`.
+All database capabilities in this skill are invoked through the bundled Python wrapper at `<resolved Skill directory>/scripts/idea-database.py`. Do not use `execute_tool` or another router. Run it with Python while keeping the command working directory at the DSH project currently being handled; do not `cd` into the Skill directory. The wrapper passes that project path to mcpc as `IJ_MCP_SERVER_PROJECT_PATH` and uses a stable project-specific session shared with the other IDEA Skills. Examples use `python scripts/idea-database.py` as shorthand for `python <resolved Skill directory>/scripts/idea-database.py`.
 
-The script accepts an IDEA MCP tool name and, when needed, one JSON object containing the tool's arguments. It passes JSON values through as provided; preserve IDEA's original argument names and types. Use `python scripts/idea-database.py <tool> --help` to retrieve that tool's description and `inputSchema` from MCP `tools/list`. The script only supports the Database tools listed below. MCP protocol errors and tool errors are reported and return a non-zero exit code.
+The wrapper accepts an IDEA database tool name and, when needed, one raw JSON argument string; pass the original argument names and JSON values unchanged. Use `python scripts/idea-database.py <tool> --help` to retrieve the tool definition through mcpc `tools-get`. The wrapper only supports the Database tools listed below. Python and the system-installed `mcpc` executable are required; the wrapper does not install mcpc.
 
 Supported tools:
 
@@ -39,13 +39,13 @@ Supported tools:
 
 Use `list_database_connections` as the default entry point:
 
-```bash
+```text
 python scripts/idea-database.py list_database_connections
 ```
 
 Use the returned connection `id` as `connectionId` for subsequent database tools. The exception is `test_database_connection`, which expects the original parameter name `id`:
 
-```bash
+```text
 python scripts/idea-database.py test_database_connection '{"id":"xxx"}'
 ```
 
@@ -53,13 +53,13 @@ python scripts/idea-database.py test_database_connection '{"id":"xxx"}'
 
 Use `list_database_schemas` to discover available databases and schemas:
 
-```bash
+```text
 python scripts/idea-database.py list_database_schemas '{"connectionId":"xxx"}'
 ```
 
 Use `list_schema_objects` to discover tables, views, and other objects. Pass `connectionId`, `databaseName`, and `schemaName`; optionally pass `kind` to filter by an object kind code:
 
-```bash
+```text
 python scripts/idea-database.py list_schema_objects '{"connectionId":"xxx","databaseName":"app","schemaName":"public"}'
 ```
 
@@ -69,7 +69,7 @@ If the required object kind is unknown, call `list_schema_object_kinds` with `co
 
 Use `get_database_object_description` with `connectionId`, `databaseName`, `schemaName`, `objectName`, and `kind` to inspect columns, types, keys, and indexes:
 
-```bash
+```text
 python scripts/idea-database.py get_database_object_description '{"connectionId":"xxx","databaseName":"app","schemaName":"public","objectName":"users","kind":"table"}'
 ```
 
@@ -83,7 +83,7 @@ Use `introspect_schema` only when required metadata is missing or clearly stale.
 
 For a quick look at table-like data, prefer `preview_table_data` rather than immediately writing `SELECT *`:
 
-```bash
+```text
 python scripts/idea-database.py preview_table_data '{"connectionId":"xxx","databaseName":"app","schemaName":"public","tableName":"users"}'
 ```
 
@@ -93,7 +93,7 @@ Use `maxRowCount` to control returned rows; the default is 100.
 
 Use `execute_sql_query` when filtering, joins, aggregation, ordering, or another custom query is needed:
 
-```bash
+```text
 python scripts/idea-database.py execute_sql_query '{"connectionId":"xxx","databaseName":"app","schemaName":"public","queryText":"select * from users limit 10"}'
 ```
 

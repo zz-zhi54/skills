@@ -6,21 +6,19 @@ allowed-tools: bash
 
 # IntelliJ IDEA Debugger Skill
 
-Use the bundled `scripts/idea-debug.py` script to call the supported IntelliJ IDEA MCP debugger and run-configuration tools. Invoke tools only through this script, using the original MCP Tool name and, when needed, one JSON object argument. Resolve the script path relative to this skill, but keep the shell's working directory at the current DSH project workspace; the script uses that working directory as `IJ_MCP_SERVER_PROJECT_PATH`.
+Use the bundled Python wrapper to call the supported IntelliJ IDEA debugger and run-configuration tools through `mcpc`. Invoke tools only through `python <resolved Skill directory>/scripts/idea-debug.py`, using the original MCP Tool name and, when needed, one JSON object argument. Keep the command working directory at the current DSH project directory; the wrapper uses it as `IJ_MCP_SERVER_PROJECT_PATH` and derives a stable project-specific mcpc session shared with the other IDEA Skills.
 
-```bash
-scripts/idea-debug.py xdebug_get_debugger_status
-scripts/idea-debug.py xdebug_set_breakpoint \
-  '{"filePath":"src/main/java/example/Foo.java","line":42,"logExpression":"value + 1","suspendPolicy":"NONE"}'
-scripts/idea-debug.py xdebug_control_session '{"action":"DRAIN_EVENTS"}'
-scripts/idea-debug.py xdebug_evaluate_expression \
-  '{"sessionId":"xxx","frameIndex":0,"expression":"user.getName().trim()","depth":0}'
+```text
+python scripts/idea-debug.py xdebug_get_debugger_status
+python scripts/idea-debug.py xdebug_set_breakpoint '{"filePath":"src/main/java/example/Foo.java","line":42,"logExpression":"value + 1","suspendPolicy":"NONE"}'
+python scripts/idea-debug.py xdebug_control_session '{"action":"DRAIN_EVENTS"}'
+python scripts/idea-debug.py xdebug_evaluate_expression '{"sessionId":"xxx","frameIndex":0,"expression":"user.getName().trim()","depth":0}'
 ```
 
-For the exact current contract of a supported tool, ask the script to fetch its `description` and `inputSchema` from IDEA MCP:
+For the exact current contract of a supported tool, use `--help`; the wrapper delegates this to mcpc `tools-get`:
 
-```bash
-scripts/idea-debug.py xdebug_set_breakpoint --help
+```text
+python scripts/idea-debug.py xdebug_set_breakpoint --help
 ```
 
 The script only permits the debugger and run-configuration tools listed in [Tool Reference](#tool-reference). Supply arguments as one JSON object; values keep their JSON/MCP types. Omit unused optional properties rather than supplying fake placeholders. Store expressions as their original source text in JSON strings.
@@ -40,7 +38,7 @@ Manual activation by the user means launch and use the debugger when tools are a
 
 ## Activation Gate (tool availability)
 
-Use this skill only when the IDEA MCP server and required debugger tools are available. Check the exact live contracts with `scripts/idea-debug.py <tool> --help`. Minimum required set:
+Use this skill only when the IDEA MCP server and required debugger tools are available. Check the exact live contracts with `python scripts/idea-debug.py <tool> --help`. Minimum required set:
 - `xdebug_set_breakpoint` (important: sets logpoints, via `logExpression`)
 - `xdebug_start_debugger_session`
 - `xdebug_control_session`
@@ -56,8 +54,8 @@ If the minimum set is unavailable: state the blocker explicitly, do not force a 
 
 **Logpoint output is dumped to debugger events, and you read it back from there.** Each logpoint hit is captured as an event in the debug session's event buffer — not printed to your console and not written to any file. Collect that output by draining events:
 
-```bash
-scripts/idea-debug.py xdebug_control_session '{"action":"DRAIN_EVENTS"}'
+```text
+python scripts/idea-debug.py xdebug_control_session '{"action":"DRAIN_EVENTS"}'
 ```
 
 The response returns accumulated logpoint output in `tracepointOutputsTail`. The logpoint loop is: install logpoint(s) → run the scenario → drain events → map each event back to source. Reading events is the normal, expected way to get logpoint results; if you find yourself wanting to write a file or add a print statement to capture output, drain events instead.
@@ -190,7 +188,7 @@ For a reproducible runtime issue:
 
 ## Tool Reference
 
-The script only exposes the following official debugger/run-configuration tools. The live MCP contract is the source of truth for exact parameters and constraints; inspect it with `scripts/idea-debug.py <tool> --help` before calling a tool when needed.
+The wrapper only exposes the following debugger/run-configuration tools. The live MCP contract is the source of truth for exact parameters and constraints; inspect it with `python scripts/idea-debug.py <tool> --help` when needed (the wrapper delegates to mcpc `tools-get`).
 
 | Tool | Purpose |
 |---|---|
@@ -212,12 +210,10 @@ The script only exposes the following official debugger/run-configuration tools.
 
 A few direct-call examples:
 
-```bash
-scripts/idea-debug.py xdebug_set_breakpoint \
-  '{"filePath":"<p>","line":42,"logExpression":"value + 1","suspendPolicy":"NONE"}'
-scripts/idea-debug.py xdebug_control_session '{"action":"DRAIN_EVENTS"}'
-scripts/idea-debug.py xdebug_evaluate_expression \
-  '{"sessionId":"xxx","frameIndex":0,"expression":"user.getName().trim()","depth":0}'
+```text
+python scripts/idea-debug.py xdebug_set_breakpoint '{"filePath":"<p>","line":42,"logExpression":"value + 1","suspendPolicy":"NONE"}'
+python scripts/idea-debug.py xdebug_control_session '{"action":"DRAIN_EVENTS"}'
+python scripts/idea-debug.py xdebug_evaluate_expression '{"sessionId":"xxx","frameIndex":0,"expression":"user.getName().trim()","depth":0}'
 ```
 
 ## Events, Logpoints, And Tracepoints
