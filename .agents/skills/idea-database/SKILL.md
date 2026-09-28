@@ -12,7 +12,7 @@ Use IntelliJ IDEA MCP database tools for databases configured in the current IDE
 - creating separate database connections
 - guessing database structure from source code
 
-All database capabilities in this skill are invoked through the bundled Python wrapper at `<resolved Skill directory>/scripts/idea-database.py`. Do not use `execute_tool` or another router. Run it with Python while keeping the command working directory at the DSH project currently being handled; do not `cd` into the Skill directory. The wrapper passes that project path to mcpc as `IJ_MCP_SERVER_PROJECT_PATH` and uses a stable project-specific session shared with the other IDEA Skills. Examples use `python scripts/idea-database.py` as shorthand for `python <resolved Skill directory>/scripts/idea-database.py`.
+All database capabilities in this skill are invoked through the bundled Python wrapper at `<resolved Skill directory>/scripts/idea-database.py`. Do not use `execute_tool` or another router. Run it with Python while keeping the command working directory inside the DSH project currently being handled; do not `cd` into the Skill directory. The wrapper resolves the nearest ancestor containing `.git` (or uses the working directory if none exists) as `IJ_MCP_SERVER_PROJECT_PATH`. mcpc state is stored in `<project root>/.dsh/mcpc`, and all three IDEA Skills share the fixed session `@idea`. Examples use `python scripts/idea-database.py` as shorthand for `python <resolved Skill directory>/scripts/idea-database.py`.
 
 The wrapper accepts an IDEA database tool name and, when needed, one raw JSON argument string; pass the original argument names and JSON values unchanged. Use `python scripts/idea-database.py <tool> --help` to retrieve the tool definition through mcpc `tools-get`. The wrapper only supports the Database tools listed below. Python and the system-installed `mcpc` executable are required; the wrapper does not install mcpc.
 
@@ -91,10 +91,10 @@ Use `maxRowCount` to control returned rows; the default is 100.
 
 ### SQL
 
-Use `execute_sql_query` when filtering, joins, aggregation, ordering, or another custom query is needed:
+Use `execute_sql_query` when filtering, joins, aggregation, ordering, or another custom query is needed. Its arguments are `connectionId` and `queryText`; use `databaseName` and `schemaName` with the schema/object tools instead:
 
 ```text
-python scripts/idea-database.py execute_sql_query '{"connectionId":"xxx","databaseName":"app","schemaName":"public","queryText":"select * from users limit 10"}'
+python scripts/idea-database.py execute_sql_query '{"connectionId":"xxx","queryText":"select * from users limit 10"}'
 ```
 
 Prefer targeted, read-only SQL by default. If the response includes a `resultSetId` and more rows are needed, use `fetch_query_result` with that `resultSetId` and the required `offset`; do not execute the SQL again just to fetch more results.

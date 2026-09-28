@@ -6,7 +6,7 @@ allowed-tools: bash
 
 # IntelliJ IDEA Debugger Skill
 
-Use the bundled Python wrapper to call the supported IntelliJ IDEA debugger and run-configuration tools through `mcpc`. Invoke tools only through `python <resolved Skill directory>/scripts/idea-debug.py`, using the original MCP Tool name and, when needed, one JSON object argument. Keep the command working directory at the current DSH project directory; the wrapper uses it as `IJ_MCP_SERVER_PROJECT_PATH` and derives a stable project-specific mcpc session shared with the other IDEA Skills.
+Use the bundled Python wrapper to call the supported IntelliJ IDEA debugger and run-configuration tools through `mcpc`. Invoke tools only through `python <resolved Skill directory>/scripts/idea-debug.py`, using the original MCP Tool name and, when needed, one JSON object argument. Keep the command working directory inside the current DSH project; the wrapper resolves the nearest ancestor containing `.git` (or uses the working directory if none exists) as `IJ_MCP_SERVER_PROJECT_PATH`. mcpc state is stored in `<project root>/.dsh/mcpc`, and all three IDEA Skills share the fixed session `@idea`.
 
 ```text
 python scripts/idea-debug.py xdebug_get_debugger_status
@@ -158,11 +158,12 @@ If the candidate target is a test, default to `AUTO`. Never ask the user to repr
 
 ## Breakpoint And Logpoint Targeting Modes
 
-`xdebug_set_breakpoint` (whether or not you pass `logExpression`) has two mutually exclusive modes — never mix in one call:
-- **Location mode**: pass `filePath` + `line` (1-based); omit `breakpointId`.
-- **`breakpointId` mode**: pass `breakpointId` (an opaque canonical id from a prior set/list response).
+`xdebug_set_breakpoint` supports distinct operations; use `python scripts/idea-debug.py xdebug_set_breakpoint --help` for the exact live schema:
+- **Location-based set**: pass `filePath` + `line` (1-based).
+- **Update by ID**: pass `breakpointId` (an opaque canonical id from a prior set/list response). To relocate a line breakpoint, the contract also allows `filePath` + `line` with the ID.
+- **Mute-only**: pass `sessionId` + `breakpointsMuted` without breakpoint location fields.
 
-`breakpointId` mode rewrites the whole breakpoint, it does not patch it. Treat an update as "write the full breakpoint", never "tweak one flag".
+An update by `breakpointId` rewrites the whole breakpoint; treat it as "write the full breakpoint", never "tweak one flag".
 
 After each call, inspect the returned `lineText` and confirm the excerpt matches the intended line. A successful response does not prove `condition`/`logExpression` is valid; verify via `breakpointErrorsTail` / `tracepointOutputsTail` after the next run.
 
@@ -246,7 +247,7 @@ Logpoint and tracepoint output is buffered as **debugger events** on the session
 - invoking tools outside the supported `idea-debug` allowlist;
 - encoding omitted properties with placeholder strings;
 - reusing stale `sessionId`/`frameIndex`/`path` after the paused location changes;
-- mixing location mode and `breakpointId` mode in one call;
+- passing breakpoint location fields to an unrelated operation; use the live `--help` schema, noting that ID-based relocation explicitly accepts `filePath` + `line`;
 - updating a breakpoint by id without re-passing its full state, clobbering a user's `logExpression`/`condition` or resetting its log/suspend flags;
 - stopping at a downstream symptom without tracing producing state;
 - asking the user to reproduce before probes are prepared;

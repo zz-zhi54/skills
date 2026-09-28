@@ -12,10 +12,10 @@ A collection of reusable skills for AI coding agents. Each skill is stored in `.
 | [`convert-documents-to-markdown`](.agents/skills/convert-documents-to-markdown/) | Convert office documents, ebooks, CSV files, and PDFs to GitHub-Flavored Markdown. |
 | [`create-agentsmd`](.agents/skills/create-agentsmd/) | Create a high-quality `AGENTS.md` file for a repository. |
 | [`create-github-action-workflow-specification`](.agents/skills/create-github-action-workflow-specification/) | Create an AI-optimized specification for an existing GitHub Actions workflow. |
-| [`debugging-code`](.agents/skills/debugging-code/) | Perform debugger-first runtime root-cause analysis in Rider-supported projects. |
 | [`find-skills`](.agents/skills/find-skills/) | Discover and install skills from the open agent skills ecosystem. |
+| [`idea`](.agents/skills/idea/) | Search symbols, read source, analyze call relationships, and rename symbols through IntelliJ IDEA MCP. |
 | [`idea-database`](.agents/skills/idea-database/) | Inspect IntelliJ IDEA database connections, schemas, objects, queries, and query status through IDEA MCP tools. |
-| [`ij-debugger`](.agents/skills/ij-debugger/) | Perform debugger-first runtime analysis for JVM code in IntelliJ IDEA. |
+| [`idea-debug`](.agents/skills/idea-debug/) | Perform debugger-first runtime analysis for JVM code in IntelliJ IDEA. |
 | [`playwright-cli`](.agents/skills/playwright-cli/) | Automate browsers and work with Playwright tests through `playwright-cli`. |
 | [`skill-creator`](.agents/skills/skill-creator/) | Create, improve, and evaluate agent skills. |
 | [`tea-cli`](.agents/skills/tea-cli/) | Work with Gitea through the official `tea` command-line tool. |
