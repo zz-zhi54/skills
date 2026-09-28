@@ -33,6 +33,8 @@ Supported tools:
 - `create_database_connection`
 - `edit_database_connection`
 
+Keep metadata queries, previews, and SQL results narrowly scoped on the first call. Expand the scope or fetch more rows only when the current result is insufficient to continue. Tool parameters and official defaults refer to the [JetBrains MCP Server documentation](https://www.jetbrains.com/help/idea/mcp-server.html); conservative Skill limits are identified separately.
+
 ## Workflow
 
 ### Connection
@@ -57,13 +59,13 @@ Use `list_database_schemas` to discover available databases and schemas:
 python scripts/idea-database.py list_database_schemas '{"connectionId":"xxx"}'
 ```
 
-Use `list_schema_objects` to discover tables, views, and other objects. Pass `connectionId`, `databaseName`, and `schemaName`; optionally pass `kind` to filter by an object kind code:
+Use `list_schema_objects` to discover tables, views, and other objects. Pass `connectionId`, `databaseName`, and `schemaName`; when the target kind is known, pass `kind` to narrow the result:
 
 ```text
 python scripts/idea-database.py list_schema_objects '{"connectionId":"xxx","databaseName":"app","schemaName":"public"}'
 ```
 
-If the required object kind is unknown, call `list_schema_object_kinds` with `connectionId` before filtering. Do not guess object kind codes. Do not query system tables with SQL as a substitute for IDEA's available metadata tools.
+When using `kind`, pass the actual code returned by `list_schema_object_kinds`. This tool has no `limit` parameter, so avoid listing every object in a schema when a kind filter will suffice. If the required object kind is unknown, call `list_schema_object_kinds` with `connectionId` before filtering. Do not guess object kind codes or query system tables with SQL as a substitute for IDEA's available metadata tools.
 
 ### Object structure
 
@@ -81,23 +83,23 @@ Use `introspect_schema` only when required metadata is missing or clearly stale.
 
 ### Preview data
 
-For a quick look at table-like data, prefer `preview_table_data` rather than immediately writing `SELECT *`:
+For a quick look at table-like data, prefer `preview_table_data` rather than immediately writing `SELECT *`. Explicitly set `maxRowCount: 20` on the first call:
 
 ```text
-python scripts/idea-database.py preview_table_data '{"connectionId":"xxx","databaseName":"app","schemaName":"public","tableName":"users"}'
+python scripts/idea-database.py preview_table_data '{"connectionId":"xxx","databaseName":"app","schemaName":"public","tableName":"users","maxRowCount":20}'
 ```
 
-Use `maxRowCount` to control returned rows; the default is 100.
+The official default for `maxRowCount` is 100; `20` is this Skill's conservative recommendation, not the official default. Increase it only when the preview is insufficient.
 
 ### SQL
 
-Use `execute_sql_query` when filtering, joins, aggregation, ordering, or another custom query is needed. Its arguments are `connectionId` and `queryText`; use `databaseName` and `schemaName` with the schema/object tools instead:
+Use `execute_sql_query` when filtering, joins, aggregation, ordering, or another custom query is needed. Its arguments are `connectionId` and `queryText`; use `databaseName` and `schemaName` with the schema/object tools instead. For exploratory `SELECT` queries, add `LIMIT 20` by default, except for aggregate queries or queries that naturally return very few rows. Avoid unbounded `SELECT *`:
 
 ```text
-python scripts/idea-database.py execute_sql_query '{"connectionId":"xxx","queryText":"select * from users limit 10"}'
+python scripts/idea-database.py execute_sql_query '{"connectionId":"xxx","queryText":"select * from users limit 20"}'
 ```
 
-Prefer targeted, read-only SQL by default. If the response includes a `resultSetId` and more rows are needed, use `fetch_query_result` with that `resultSetId` and the required `offset`; do not execute the SQL again just to fetch more results.
+Prefer targeted, read-only SQL. `fetch_query_result` accepts `resultSetId` and `offset` only; it has no `limit` parameter and cannot be used to set a page size. Bound the result size in the original SQL (for example, with `LIMIT 20`) or with `preview_table_data.maxRowCount`. If more rows from the existing result are needed, use the returned `resultSetId` and the required `offset` rather than executing the SQL again.
 
 ### Connection problems
 
