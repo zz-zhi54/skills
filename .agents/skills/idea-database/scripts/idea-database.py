@@ -1,6 +1,5 @@
 """Call the supported IntelliJ IDEA Database tools through mcpc."""
 
-import hashlib
 import os
 import shutil
 import subprocess
@@ -39,9 +38,9 @@ def main(argv):
     show_help = len(argv) == 2 and argv[1] == "--help"
     json_arguments = argv[1] if len(argv) == 2 and not show_help else "{}"
 
-    project_path = Path.cwd().resolve()
+    project_dir = Path.cwd().resolve()
     skill_path = Path(__file__).resolve().parent.parent
-    if project_path == skill_path or skill_path in project_path.parents:
+    if project_dir == skill_path or skill_path in project_dir.parents:
         print("Run this script from the DSH project directory, not from the Skill directory.", file=sys.stderr)
         return 2
 
@@ -49,13 +48,14 @@ def main(argv):
         print("mcpc was not found on PATH; install/configure apify/mcpc before using this Skill.", file=sys.stderr)
         return 127
 
-    project_key = os.path.normcase(str(project_path)).encode("utf-8")
-    session = "@idea-" + hashlib.sha256(project_key).hexdigest()[:16]
+    env = os.environ.copy()
+    env["MCPC_HOME_DIR"] = str(project_dir / ".dsh" / "mcpc")
+    session = "@idea"
 
     connect = subprocess.run([
         "mcpc", "connect", ENDPOINT, session, "--no-profile",
-        "-H", f"IJ_MCP_SERVER_PROJECT_PATH: {project_path}",
-    ])
+        "-H", f"IJ_MCP_SERVER_PROJECT_PATH: {project_dir}",
+    ], env=env)
     if connect.returncode != 0:
         return connect.returncode
 
@@ -63,7 +63,7 @@ def main(argv):
         command = ["mcpc", session, "tools-get", tool]
     else:
         command = ["mcpc", "--json", session, "tools-call", tool, json_arguments]
-    return subprocess.run(command).returncode
+    return subprocess.run(command, env=env).returncode
 
 
 if __name__ == "__main__":
